@@ -50,6 +50,11 @@ const firebaseConfig = {
   measurementId: "G-5ZTZ3Q2642"
 };
 
+// 後端 API 的基本 URL
+// *** 請將這裡的 'YOUR_RENDER_BACKEND_SERVICE_URL' 替換為您從 Render 獲得的 FastAPI 後端服務 URL ***
+// 例如: 'https://fastapi-notes-backend-xxxx.onrender.com'
+const API_BASE_URL = 'YOUR_RENDER_BACKEND_SERVICE_URL';
+
 // 初始化 Firebase 應用程式和服務
 // 在組件外部初始化，以避免不必要的重複初始化
 let app;
@@ -386,7 +391,7 @@ function App() {
   const handleUnarchive = async (id) => {
     // 確保 Firestore 和認證已準備好
     if (!firestoreDb || !isAuthReady) {
-      setMessage('應用程式未準備好，請稍後再試。');
+      setMessage('應用程式未準備好，請稍後再試。。');
       setAlertSeverity('warning');
       setAlertOpen(true);
       return;
@@ -701,7 +706,6 @@ function App() {
             }
             label={<Typography variant="body1" color="text.primary">標記為重要</Typography>}
           />
-          {/* 在編輯模式下顯示歸檔選項 */}
           {editingNote && (
             <FormControlLabel
               control={

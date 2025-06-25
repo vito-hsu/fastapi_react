@@ -1,106 +1,113 @@
-// src/components/NoteForm.js
+// frontend/src/NoteForm.js
+import React, { useState, useEffect } from 'react';
 
-import React, { useState, useEffect } from "react";
+function NoteForm({ onSave, editingNote, onCancelEdit }) {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState(''); // 新增分類狀態
+  const [isImportant, setIsImportant] = useState(false); // 新增重要性狀態
 
-function NoteForm({ noteToEdit, onSave, onCancel }) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [image, setImage] = useState(null); // 用於儲存新的圖片檔案
-  const [clearImage, setClearImage] = useState(false); // 標記是否清除現有圖片
-
-  // 當 noteToEdit 改變時（即開始編輯不同筆記或取消編輯），更新表單狀態
+  // 當 editingNote 改變時，更新表單內容
   useEffect(() => {
-    if (noteToEdit) {
-      setTitle(noteToEdit.title);
-      setContent(noteToEdit.content);
-      setImage(null); // 編輯時不預設載入檔案，使用者需重新選擇
-      setClearImage(false); // 重置清除圖片的狀態
+    if (editingNote) {
+      setTitle(editingNote.title);
+      setContent(editingNote.content);
+      setCategory(editingNote.category || ''); // 設置分類，如果為 null 則為空字串
+      setIsImportant(editingNote.is_important || false); // 設置重要性
     } else {
-      // 如果是新增模式，清空表單
-      setTitle("");
-      setContent("");
-      setImage(null);
-      setClearImage(false);
+      // 如果沒有 editingNote，則清空表單
+      setTitle('');
+      setContent('');
+      setCategory('');
+      setIsImportant(false);
     }
-  }, [noteToEdit]);
+  }, [editingNote]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("content", content);
-
-    // 如果有新圖片被選擇
-    if (image) {
-      formData.append("image", image);
+    if (!title.trim() || !content.trim()) {
+      alert('標題和內容都不能為空！');
+      return;
     }
-
-    // 如果勾選了清除圖片，或者有新圖片上傳時也應該觸發清除舊圖邏輯
-    // 後端會判斷 clear_image 優先處理清除，然後再判斷 image 是否存在來處理新圖上傳
-    if (clearImage) {
-      formData.append("clear_image", "true"); // FormData 傳遞 boolean 通常轉為字串
-    } else {
-      formData.append("clear_image", "false");
-    }
-
-    onSave(formData); // 調用父組件傳入的保存函數
+    // 傳遞所有筆記資料，包含新的分類和重要性
+    onSave({ title, content, category, is_important: isImportant });
+    // 儲存後清空表單
+    setTitle('');
+    setContent('');
+    setCategory('');
+    setIsImportant(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label htmlFor="title">標題:</label>
+    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg border border-blue-100 transform transition-all duration-300 hover:shadow-xl">
+      <h2 className="text-3xl font-bold text-gray-700 mb-6 flex items-center">
+        <i className="fas fa-pencil-alt mr-3 text-blue-600"></i>
+        {editingNote ? '編輯筆記' : '新增筆記'}
+      </h2>
+      <div className="mb-5">
+        <label htmlFor="title" className="block text-gray-700 text-sm font-semibold mb-2">標題:</label>
         <input
           type="text"
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          className="w-full p-3 rounded-lg border-2 border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-200 shadow-sm placeholder-gray-400"
+          placeholder="輸入筆記標題"
           required
         />
       </div>
-      <div className="form-group">
-        <label htmlFor="content">內容:</label>
+      <div className="mb-5">
+        <label htmlFor="content" className="block text-gray-700 text-sm font-semibold mb-2">內容:</label>
         <textarea
           id="content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          rows="6"
+          className="w-full p-3 rounded-lg border-2 border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-y transition duration-200 shadow-sm placeholder-gray-400"
+          placeholder="輸入筆記內容"
           required
         ></textarea>
       </div>
-      <div className="form-group">
-        <label htmlFor="image">圖片:</label>
+      <div className="mb-5">
+        <label htmlFor="category" className="block text-gray-700 text-sm font-semibold mb-2">分類:</label>
         <input
-          type="file"
-          id="image"
-          accept="image/*" // 只允許選擇圖片檔案
-          onChange={(e) => setImage(e.target.files[0])}
+          type="text"
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full p-3 rounded-lg border-2 border-blue-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-200 shadow-sm placeholder-gray-400"
+          placeholder="輸入筆記分類 (例如: 工作, 個人, 學習)"
         />
       </div>
+      <div className="mb-6 flex items-center">
+        <input
+          type="checkbox"
+          id="isImportant"
+          checked={isImportant}
+          onChange={(e) => setIsImportant(e.target.checked)}
+          className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-md cursor-pointer checked:bg-blue-600 checked:border-transparent transition duration-200"
+        />
+        <label htmlFor="isImportant" className="text-gray-700 text-base font-semibold cursor-pointer">標記為重要</label>
+      </div>
 
-      {noteToEdit && noteToEdit.image_filename && (
-        <div className="form-group">
-          <input
-            type="checkbox"
-            id="clearImage"
-            checked={clearImage}
-            onChange={(e) => setClearImage(e.target.checked)}
-          />
-          <label htmlFor="clearImage">清除現有圖片</label>
-          <br/>
-          <small style={{ color: '#666' }}>
-            {image ? "（選擇新圖片將覆蓋舊圖片，勾選此項會先清除舊圖）" : "（清除後將無圖片）"}
-          </small>
-        </div>
-      )}
-
-      <div className="form-actions">
-        <button type="submit" className="button-primary">
-          {noteToEdit ? "更新筆記" : "新增筆記"}
+      <div className="flex items-center justify-end space-x-4">
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transform hover:scale-105 transition duration-300 ease-in-out flex items-center"
+        >
+          <i className="fas fa-save mr-2"></i>
+          {editingNote ? '更新筆記' : '新增筆記'}
         </button>
-        <button type="button" className="button-secondary" onClick={onCancel}>
-          取消
-        </button>
+        {editingNote && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transform hover:scale-105 transition duration-300 ease-in-out flex items-center"
+          >
+            <i className="fas fa-times-circle mr-2"></i>
+            取消編輯
+          </button>
+        )}
       </div>
     </form>
   );

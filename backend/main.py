@@ -216,25 +216,6 @@ async def delete_note(note_id: int):
             
     return {"message": f"Note {note_id} deleted successfully."}
 
-# 清除所有筆記（和相關圖片）
-@app.delete("/notes/clear_all", response_model=dict)
-async def clear_all_notes():
-    global notes_db, next_id
-    deleted_count = len(notes_db)
-
-    # 刪除所有圖片檔案
-    for filename in os.listdir(UPLOAD_DIRECTORY):
-        file_path = os.path.join(UPLOAD_DIRECTORY, filename)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path) # 刪除檔案
-        except Exception as e:
-            print(f"Error deleting file {file_path}: {e}")
-
-    notes_db = {}  # 清空資料庫
-    next_id = 1    # 重置 ID 計數器
-    return {"message": f"All {deleted_count} notes and their images have been cleared."}
-
 # 提供圖片檔案服務
 @app.get("/images/{filename}")
 async def get_image(filename: str):
